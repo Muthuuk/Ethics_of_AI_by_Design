@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Station Risk Spotter</title>
+<meta name="description" content="Explore facial recognition at a 3D railway station, find six ethical risks, and choose the best fix for each.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+/* Layout: 3D station with clickable hotspots, side panel for the chosen risk, list of hotspots, score. */
+.lab{padding-block:20px 60px;display:flex;flex-direction:column;gap:16px}
+.labgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.spots{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.spots button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;cursor:pointer;font-size:.86rem}
+.spots button.done{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:600}
+.spots button[aria-current="true"]{border-color:var(--accent);font-weight:700}
+.panel h3{margin-bottom:4px}
+.tag{display:inline-flex;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--signal);background:var(--signal-soft);border-radius:99px;padding:2px 9px;margin-bottom:8px}
+.score{font-family:var(--f-mono);font-size:1.2rem;color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="bar">
+  <a class="home" href="../../index.html">← Course home</a>
+  <h1><small>Lab · Chapter 4</small>Station risk spotter</h1>
+  <span class="score" id="score" aria-live="polite">0 / 6</span>
+</div></div></header>
+
+<main class="wrap lab">
+  <p class="lede">This lab follows Chapter 4, Exercise 1: choose a real-world AI deployment, here facial recognition in public transport, identify the ethical risks, and propose a fix. The station and everyone in it are invented. Tap a glowing marker in the scene, or use the buttons below it, to inspect each risk.</p>
+  <div class="labgrid">
+    <div class="card">
+      <div class="stage s3d" id="station" role="img" aria-label="3D railway station with facial recognition cameras and six glowing markers, one for each ethical risk"></div>
+      <div class="spots" id="spots" aria-label="Risks to inspect"></div>
+    </div>
+    <div class="card panel" id="panel" aria-live="polite">
+      <h3>Find the risks</h3>
+      <p class="lede">Six markers glow in the station. Each one hides an ethical risk from Chapter 4. For each, read what is happening and choose the best fix.</p>
+    </div>
+  </div>
+  <div class="card" id="summary" hidden>
+    <h3>Your mitigation plan</h3>
+    <p class="lede" style="margin-bottom:8px">This is the plan your choices add up to. Copy it into your Exercise 1 write-up.</p>
+    <ol id="plan" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px"></ol>
+    <div class="row" style="margin-top:12px"><button class="btn" type="button" id="copy">Copy the plan</button><a class="btn" href="../../ch04/index.html#l3" style="text-decoration:none">Back to Chapter 4</a></div>
+  </div>
+</main>
+<script src="../../assets/vendor/three.min.js"></script>
+<script>
+const RISKS = [
+ { id:'cams', name:'Cameras', pos:[-4,3.0,-2.2], tag:'Privacy and surveillance',
+   what:'Cameras scan the face of every passenger and compare it with a watch list. Almost everyone scanned has done nothing wrong.',
+   q:'What is the best fix?',
+   o:[['Use the system only where there is a clear and lawful need, keep it as limited as possible, and review whether it is still needed', 2, 'Right. Surveillance should be limited to what is truly needed, and reviewed.'],
+      ['Add more cameras so nothing is missed', 0, 'That widens the surveillance rather than limiting it.'],
+      ['Make the cameras smaller so people are not bothered', 0, 'Hiding cameras makes the privacy problem worse.']] },
+ { id:'match', name:'Wrong match', pos:[1.2,0.4,0.9], tag:'Bias',
+   what:'A passenger is wrongly matched and stopped. Tests show the system makes more wrong matches for some groups of people than for others.',
+   q:'What is the best fix?',
+   o:[['Accept it: every system makes some mistakes', 0, 'Mistakes that fall harder on some groups are unfair.'],
+      ['Test accuracy separately for each group, use fairness-aware methods, and pause the system if accuracy is unequal', 2, 'Right. Measure each group and do not deploy unequal accuracy.'],
+      ['Only use it on busy days', 1, 'That limits how often harm happens, but not whether it is fair.']] },
+ { id:'sign', name:'No notice', pos:[5.6,0.9,1.6], tag:'Consent and transparency',
+   what:'There is no sign telling passengers that their faces are being scanned, why, or how to object.',
+   q:'What is the best fix?',
+   o:[['Put up clear notices: what is collected, why, how long it is kept, who to contact, and how to object', 2, 'Right. People should be told and given a real choice where possible.'],
+      ['A notice in tiny print on the website', 1, 'Better than nothing, but passengers at the station will not see it.'],
+      ['Say nothing, to avoid complaints', 0, 'That removes people\'s ability to understand or object.']] },
+ { id:'store', name:'Face store', pos:[-5.6,0.3,1.8], tag:'Privacy and data protection',
+   what:'Every scanned face is kept on a server, with no rule for when it is deleted.',
+   q:'What is the best fix?',
+   o:[['Keep everything forever, just in case', 0, 'Keeping data with no limit increases the risk of misuse and breaches.'],
+      ['Use privacy-preserving methods: delete non-matches at once, keep matches only as long as needed, and protect the data', 2, 'Right. Collect and keep as little as possible, for as short as possible.'],
+      ['Move the server to another building', 0, 'That does not change how much data is kept or for how long.']] },
+ { id:'alert', name:'Control room', pos:[4,3.0,-2.2], tag:'Black box and accountability',
+   what:'In the control room, an alert pops up saying "Match". Staff cannot see why, or how sure the system is, and often act on it straight away.',
+   q:'What is the best fix?',
+   o:[['Show the reason and confidence for each alert, and require a trained person to check before anyone is stopped', 2, 'Right. Explainable alerts and a responsible person keep accountability.'],
+      ['Let the system act automatically to save time', 0, 'That removes the human check entirely.'],
+      ['Make the alert louder', 0, 'Louder does not make it explainable or accountable.']] },
+ { id:'update', name:'Auto-update', pos:[0,3.3,-2.6], tag:'Emerging challenges and oversight',
+   what:'The supplier updates the system every month with new data. Nobody at the station checks whether it still works fairly after each update.',
+   q:'What is the best fix?',
+   o:[['Trust the supplier', 1, 'Suppliers matter, but the operator stays responsible for how the system behaves.'],
+      ['Turn off updates for ever', 0, 'That can leave known problems unfixed.'],
+      ['Run an ethical audit after each update and monitor results continuously, with a team who can pause the system', 2, 'Right. Systems that change need continuous oversight.']] },
+];
+const done = {};
+const $ = id => document.getElementById(id);
+const host = $('station');
+let renderer = null; try { renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); } catch(e){}
+const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 16/9, 0.1, 200);
+scene.add(new THREE.HemisphereLight(0xdbeafe, 0x0b1a20, 0.9)); const sun = new THREE.DirectionalLight(0xffffff, .7); sun.position.set(5,10,6); scene.add(sun);
+const M = (c, e, o) => new THREE.MeshStandardMaterial({color:c, emissive:c, emissiveIntensity:e||.1, roughness:.6, transparent:o!=null, opacity:o==null?1:o});
+const box = (w,h,d,c,e) => new THREE.Mesh(new THREE.BoxGeometry(w,h,d), M(c,e));
+const floor = box(26,0.2,12,0x0f2a33,.02); floor.position.y = -2.3; scene.add(floor);
+const plat = box(13,0.4,5.2,0x1f2937,.05); plat.position.y = -2.0; scene.add(plat);
+const rail1 = box(26,0.1,0.15,0x64748b,.2); rail1.position.set(0,-2.15,4.2); scene.add(rail1); const rail2 = rail1.clone(); rail2.position.z = 5.2; scene.add(rail2);
+const wall = box(13,5,0.3,0x16303a,.05); wall.position.set(0,0.4,-2.8); scene.add(wall);
+const screen = box(2.4,1.2,0.1,0x0b1220,.0); screen.position.set(4,1.6,-2.62); scene.add(screen);
+const glow = box(2.2,1.0,0.02,0xf59e0b,.9); glow.position.set(4,1.6,-2.56); scene.add(glow);
+[-4,4].forEach(x => { const c = box(0.8,0.45,0.5,0x94a3b8,.25); c.position.set(x,2.5,-2.3); scene.add(c); const cone = new THREE.Mesh(new THREE.ConeGeometry(2.2,4.2,32,1,true), M(0xf59e0b,.6,.18)); cone.material.side = THREE.DoubleSide; cone.position.set(x,0.3,-1.4); cone.rotation.x = 0.4; scene.add(cone); });
+const store = new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,1.2,32), M(0xa78bfa,.4)); store.position.set(-5.6,-1.2,1.6); scene.add(store);
+const sign = box(1.6,1,0.08,0x334155,.1); sign.position.set(5.6,-0.6,1.6); scene.add(sign);
+const people = [];
+for (let i=0;i<9;i++){ const col = [0x60a5fa,0x4ade80,0xf59e0b,0xa78bfa][i%4]; const g = new THREE.Group(); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.3,0.8,18), M(col,.15)); b.position.y = 0.4; const hd = new THREE.Mesh(new THREE.SphereGeometry(0.2,18,14), b.material); hd.position.y = 1.02; g.add(b,hd); g.position.set(-4.8+i*1.2,-1.8,(i%2?0.9:-0.6)); scene.add(g); people.push(g); }
+const flagged = people[5]; flagged.children.forEach(c=>{ c.material = M(0xf87171,.6); });
+const markers = RISKS.map(r => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.32,24,18), M(0xf59e0b,.9)); m.position.set(...r.pos); m.userData.id = r.id; scene.add(m); const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5,0.04,8,40), M(0xfcd34d,.9,.9)); ring.position.copy(m.position); scene.add(ring); return {m, ring, r}; });
+const layer = document.createElement('div'); layer.className = 'lbl-layer'; host.append(layer);
+const labels = markers.map(k => { const d = document.createElement('div'); d.className = 'lbl xs warn'; d.textContent = k.r.name; layer.append(d); return d; });
+if (renderer){ renderer.setPixelRatio(Math.min(2, devicePixelRatio||1)); host.prepend(renderer.domElement); }
+else { const f = document.createElement('div'); f.className='s3d-fallback'; f.innerHTML='<b>3D view not available on this device.</b><span>Use the buttons below to inspect each risk.</span>'; host.append(f); }
+function size(){ if (!renderer) return; const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w,h,false); cam.aspect = w/h; cam.updateProjectionMatrix(); }
+new ResizeObserver(size).observe(host);
+let yaw = 0, drag = false, moved = 0, lx = 0;
+host.addEventListener('pointerdown', e => { drag = true; moved = 0; lx = e.clientX; });
+host.addEventListener('pointermove', e => { if (drag){ const dx = e.clientX-lx; moved += Math.abs(dx); yaw += dx*0.006; lx = e.clientX; } });
+host.addEventListener('pointerup', e => { drag = false; if (moved < 6) pick(e); });
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+function pick(e){ if (!renderer) return; const r = host.getBoundingClientRect(); ptr.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ptr, cam);
+  const hit = ray.intersectObjects(markers.map(k=>k.m))[0]; if (hit) open(hit.object.userData.id); }
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; const v = new THREE.Vector3();
+function frame(t){
+  requestAnimationFrame(frame); if (!renderer) return; const s = t/1000;
+  people.forEach((p,i)=>{ if (p!==flagged && !reduce) p.position.x = -4.8 + ((i*1.2 + s*0.35) % 9.6); });
+  markers.forEach((k,i)=>{ const isDone = !!done[k.r.id]; k.m.material.color.setHex(isDone?0x4ade80:0xf59e0b); k.m.material.emissive.setHex(isDone?0x4ade80:0xf59e0b); const sc = 1 + (isDone||reduce?0:0.25*Math.abs(Math.sin(s*2.5+i))); k.ring.scale.setScalar(sc); k.ring.lookAt(cam.position); });
+  const a = yaw + (reduce?0:Math.sin(s/4)*0.15), d = 15;
+  cam.position.set(Math.sin(a)*d, 6.5, Math.cos(a)*d+1); cam.lookAt(0,-0.3,0); renderer.render(scene, cam);
+  const w = host.clientWidth, h = host.clientHeight;
+  markers.forEach((k,i)=>{ v.copy(k.m.position); v.y += 0.6; v.project(cam); labels[i].style.transform = `translate(${((v.x*.5+.5)*w).toFixed(1)}px, ${((-v.y*.5+.5)*h).toFixed(1)}px) translate(-50%,-50%)`; labels[i].classList.toggle('good', !!done[k.r.id]); });
+}
+requestAnimationFrame(frame);
+
+function renderSpots(cur){ const s = $('spots'); s.innerHTML = ''; RISKS.forEach(r => { const b = document.createElement('button'); b.type = 'button'; b.textContent = (done[r.id]?'✓ ':'') + r.name; if (done[r.id]) b.className = 'done'; b.setAttribute('aria-current', String(r.id===cur)); b.onclick = () => open(r.id); s.append(b); });
+  $('score').textContent = `${Object.values(done).filter(x=>x.s===2).length} best / ${Object.keys(done).length} of 6 found`; }
+function open(id){
+  const r = RISKS.find(x=>x.id===id), p = $('panel'); p.innerHTML = '';
+  const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt) e.textContent = txt; return e; };
+  p.append(el('span','tag', r.tag), el('h3',null, r.name), el('p',null, r.what), el('p','q', r.q));
+  const opts = el('div','opts'), fb = el('div','fb');
+  r.o.forEach(([t,s,f]) => { const b = el('button','opt', t); b.type = 'button'; b.onclick = () => {
+    opts.querySelectorAll('.opt').forEach(x=>x.disabled = true); b.classList.add(s===2?'right':s===1?'part':'wrong');
+    if (s<2) [...opts.children][r.o.findIndex(o=>o[1]===2)].classList.add('right');
+    fb.innerHTML = `<b>${s===2?'Good call.':s===1?'Partly.':'Not the best choice.'}</b> ${f}`; done[r.id] = {s, fix: r.o.find(o=>o[1]===2)[0]}; renderSpots(id); plan();
+    const next = RISKS.find(x=>!done[x.id]); if (next){ const nb = el('button','btn primary','Next risk: ' + next.name); nb.type='button'; nb.style.marginTop='10px'; nb.onclick = () => open(next.id); p.append(nb); } };
+    if (done[r.id]){ b.disabled = true; if (s===2) b.classList.add('right'); } opts.append(b); });
+  p.append(opts, fb); renderSpots(id);
+}
+function plan(){ const ks = RISKS.filter(r=>done[r.id]); $('summary').hidden = ks.length < RISKS.length; const ol = $('plan'); ol.innerHTML = ''; ks.forEach(r => { const li = document.createElement('li'); li.innerHTML = `<b>${r.tag}.</b> `; li.append(done[r.id].fix + '.'); ol.append(li); }); }
+$('copy').onclick = () => { const txt = 'Facial recognition at a station: mitigation plan\n' + RISKS.map((r,i)=>`${i+1}. ${r.tag}: ${done[r.id] ? done[r.id].fix : ''}.`).join('\n'); try { navigator.clipboard.writeText(txt); $('copy').textContent = 'Copied'; } catch(e){ $('copy').textContent = 'Select and copy the list above'; } };
+renderSpots(null);
+</script>
+</body>
+</html>

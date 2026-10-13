@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ethics of AI by Design</title>
+<meta name="description" content="Short narrated lessons with 3D animations, scenario-based cases, hands-on labs and a personal learning index for every chapter of Engineering Ethics of AI by Design.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="assets/course.css">
+<style>
+/* Home: hero with 3D scene, overall learning index, how it works, chapter grid, labs. */
+.home{padding-block:28px 60px;display:flex;flex-direction:column;gap:22px}
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;align-items:center}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero .stage{aspect-ratio:16/10}
+.summary{display:flex;gap:20px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.big{font-family:var(--f-mono);font-size:2.6rem;font-weight:600;color:var(--accent);line-height:1}
+.stats{display:flex;gap:22px;flex-wrap:wrap}
+.stats div{display:flex;flex-direction:column}
+.stats small{font-size:.74rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.stats b{font-size:1.1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ch{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px;text-decoration:none;color:inherit;min-width:0}
+a.ch:hover{border-color:var(--accent)}
+.ch .n{font-family:var(--f-mono);font-size:.76rem;color:var(--accent)}
+.ch b{font-size:1rem;line-height:1.3}
+.ch .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--muted);margin-top:auto}
+.ch.soon{opacity:.55}
+.pbar{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent)}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.how div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.how b{display:block;margin-bottom:3px}
+.how span{font-size:.88rem;color:var(--muted)}
+.labs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.labs a{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:inherit;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px}
+.labs a:hover{border-color:var(--accent)}
+.labs span{font-size:.86rem;color:var(--muted)}
+.guidebtn{display:inline-flex;gap:6px;align-items:center;font-weight:600;text-decoration:none;background:var(--accent-soft);border:1px solid var(--accent);border-radius:99px;padding:6px 14px}
+</style>
+</head>
+<body>
+<div class="wrap home">
+  <section class="hero">
+    <header>
+      <div class="eyebrow">Online course</div>
+      <h1 style="font-size:2.4rem;margin-top:4px">Engineering Ethics of AI by Design</h1>
+      <p class="lede" style="margin-top:10px">Short lessons narrated by Sam, your virtual tutor, with 3D animations you can turn and explore. After each lesson comes a quick check and a real-world case to decide. Hands-on labs let you see bias happen and fix it yourself.</p>
+      <p class="foot" style="margin-top:10px">Based on the book by Prof Muthu Ramachandran (Springer).</p>
+      <p style="margin-top:14px"><a class="guidebtn" href="guide.html">New here? Read the quick guide ▶</a></p>
+    </header>
+    <div class="stage" id="hero" role="img" aria-label="Animated 3D view of the five core ethical principles as overlapping spheres"></div>
+  </section>
+
+  <section class="summary" aria-label="Your course progress">
+    <div><div class="big" id="ovIdx">—</div><small style="color:var(--muted)">course learning index</small></div>
+    <div class="stats"><div><small>Level</small><b id="ovLvl">Not started</b></div><div><small>Chapters started</small><b id="ovStarted">0</b></div><div><small>Final tests taken</small><b id="ovTests">0</b></div><div><small>Lessons finished</small><b id="ovLessons">0</b></div></div>
+  </section>
+
+  <section class="how" aria-label="How each chapter works">
+    <div><b>1. Start</b><span>Three quick questions and your available time set your path and pace.</span></div>
+    <div><b>2. Watch</b><span>Two- to three-minute 3D lessons. Listen to Sam, or read at your own speed.</span></div>
+    <div><b>3. Try, check and decide</b><span>Sort, answer a quick check, then decide a real-world case.</span></div>
+    <div><b>4. Final test and index</b><span>Your learning index shows knowledge, applying it, self-awareness and completion.</span></div>
+  </section>
+
+  <section><h2 style="font-size:1.4rem;margin-bottom:10px">Chapters</h2><div class="grid" id="grid"></div></section>
+
+  <section>
+    <h2 style="font-size:1.4rem;margin-bottom:10px">Labs and activities</h2>
+    <div class="labs">
+      <a href="labs/loan-bias/index.html"><span class="eyebrow">Lab · Chapters 1 and 4</span><b>Loan approval bias</b><span>Make the training data lopsided, watch approvals change, then apply a fairness-aware adjustment.</span></a>
+      <a href="labs/risk-spotter/index.html"><span class="eyebrow">Lab · Chapter 4</span><b>Station risk spotter</b><span>Explore facial recognition in a 3D station. Find each ethical risk and choose a fix.</span></a>
+      <a href="labs/checklist/index.html"><span class="eyebrow">Lab · Chapters 2 to 4</span><b>Checklist and audit builder</b><span>Build your own AI ethics checklist, or a mock audit for a chatbot, and download it.</span></a>
+      <a href="activities/index.html"><span class="eyebrow">For classes</span><b>Activities and assignments</b><span>Debates, case analyses, reflective essays and audits for each chapter.</span></a>
+    </div>
+  </section>
+
+  <p class="foot">Your progress is stored in this browser only. Nothing is sent anywhere. Use the same browser and device to keep your record, and download a certificate from each chapter as proof.</p>
+</div>
+<script src="assets/vendor/three.min.js"></script>
+<script src="assets/scenes.js"></script>
+<script>
+const UNITS = [
+ {id:'ch01', num:'1', title:'The Ethics of AI', ready:true},
+ {id:'ch02', num:'2', title:'Core Ethical Principles in AI', ready:true},
+ {id:'ch03', num:'3', title:'Analysis of Ethical Frameworks for AI', ready:true},
+ {id:'ch04', num:'4', title:'Ethical Challenges in AI', ready:true},
+ {id:'ch05', num:'5', title:'Case Studies in AI Ethics'},
+ {id:'ch06', num:'6', title:'Introduction to AI Ethics by Design'},
+ {id:'ch07', num:'7', title:'Ethical Considerations in Requirements Engineering'},
+ {id:'ch08', num:'8', title:'Ethical Design in Healthcare'},
+ {id:'ch09', num:'9', title:'AI Ethics by Design with Reference Architecture'},
+ {id:'ch10', num:'10', title:'Ethical AI Development'},
+ {id:'ch11', num:'11', title:'Ethical AI Testing and Evaluation'},
+ {id:'ch12', num:'12', title:'Quality Assurance Framework'},
+ {id:'ch13', num:'13', title:'Future Directions in AI Ethics'},
+ {id:'ch14', num:'14', title:'Explainability Engineering'},
+ {id:'ch15', num:'15', title:'Transparency Engineering'},
+ {id:'ch16', num:'16', title:'AI Ethics in Generative AI'}
+];
+function h(tag, attrs, ...kids){ const e=document.createElement(tag); if(attrs) for(const [k,v] of Object.entries(attrs)){ if(k==='class') e.className=v; else e.setAttribute(k,v);} for(const k of kids.flat()) if(k!=null&&k!==false) e.append(k.nodeType?k:document.createTextNode(k)); return e; }
+function read(id){ try { return JSON.parse(localStorage.getItem('eai:'+id) || 'null'); } catch(e){ return null; } }
+const LEVELS = [[0,'Novice'],[40,'Advanced beginner'],[60,'Competent'],[80,'Proficient']];
+const grid = document.getElementById('grid');
+let started = 0, tests = 0, lessons = 0, sum = 0;
+UNITS.forEach(u => {
+  const s = read(u.id), m = s && s.meta, label = 'Chapter '+u.num;
+  const card = h(u.ready?'a':'div', u.ready ? {class:'ch',href:u.id+'/index.html','aria-label':label+': '+u.title} : {class:'ch soon','aria-disabled':'true'}, h('span',{class:'n'},label), h('b',null,u.title));
+  if (m && m.lessons) card.append(h('div',{class:'pbar'}, h('i',{style:`width:${Math.round(100*(m.done||0)/m.lessons)}%`})));
+  const meta = h('div',{class:'meta'});
+  if (!u.ready) meta.append(h('span',null,'Coming soon'));
+  else if (m) meta.append(h('span',{class:'pill '+(m.test?'good':'acc')}, `Index ${m.index||0} · ${m.level||'Novice'}`), h('span',null, `${m.done||0}/${m.lessons||'?'} lessons`));
+  else meta.append(h('span',{class:'pill acc'},'Start'), h('span',null,'Not started'));
+  card.append(meta); grid.append(card);
+  if (m){ started++; lessons += (m.done||0); sum += (m.index||0); if (m.test) tests++; }
+});
+if (started){ const avg = Math.round(sum/started); document.getElementById('ovIdx').textContent = avg; document.getElementById('ovLvl').textContent = LEVELS.filter(l=>avg>=l[0]).pop()[1]; }
+document.getElementById('ovStarted').textContent = started; document.getElementById('ovTests').textContent = tests; document.getElementById('ovLessons').textContent = lessons;
+// 3D hero: cycle through the five principles
+if (window.Scenes){ const hero = Scenes.mount(document.getElementById('hero')); let k = 5; hero.show('spheres', 5, {});
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(()=>{ k = (k+1) % 6; hero.show('spheres', k===5?5:k, {}); }, 3200); }
+</script>
+</body>
+</html>

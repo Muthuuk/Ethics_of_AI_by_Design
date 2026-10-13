@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Activities and Assignments</title>
+<meta name="description" content="Class activities and assignments for Chapters 1 to 4 of the Ethics of AI by Design course: debates, case analyses, audits, checklists and reflective essays.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/course.css">
+<style>
+/* Layout: chapter filter chips, then activity cards with format, steps, what good looks like. */
+.lab{padding-block:20px 60px;display:flex;flex-direction:column;gap:16px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.filters button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:.88rem}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.act{display:flex;flex-direction:column;gap:8px}
+.act .meta{display:flex;gap:6px;flex-wrap:wrap}
+.act ol,.act ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px;font-size:.94rem}
+.act details summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--accent)}
+.act details ul{margin-top:6px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="bar">
+  <a class="home" href="../index.html">← Course home</a>
+  <h1><small>For classes and self-study</small>Activities and assignments</h1>
+</div></div></header>
+<main class="wrap lab">
+  <p class="lede">Each activity comes from the chapter slides or instructor manuals. Steps are written so a learner can follow them alone or a tutor can run them in class. "What good looks like" is a short marking guide suggested for this course.</p>
+  <div class="filters" id="filters"></div>
+  <div class="acts" id="acts"></div>
+</main>
+<script>
+const ACTS = [
+ {ch:1, t:'Opening poll: what do you think AI ethics is?', f:'Class poll', from:'Chapter 1 instructor notes',
+  s:['Before Lesson 1, everyone answers: "Is AI ethics a problem for today or for the future?"','Share the results.','Revisit the poll after Lesson 2 (narrow, general and super AI). Has anyone changed their mind, and why?'],
+  g:['Uses an example of narrow AI in use today','Connects ethics to real decisions such as hiring, healthcare or justice']},
+ {ch:1, t:'Case discussion: what would you do differently?', f:'Group discussion', from:'Chapter 1 slides',
+  s:['In groups, take one case: bias in hiring algorithms, or autonomous vehicle dilemmas.','Name the principles at risk.','Agree what you would do differently if you were building the system.','Each group reports back in two minutes.'],
+  g:['Names the specific principles at risk','Proposes a concrete change to data, design, testing or oversight','Considers everyone affected, not only the users']},
+ {ch:1, t:'Emergency ethics drill', f:'Quick decision drill', from:'Chapter 1 slides and instructor notes',
+  s:['Use the Emergency Ethics Questions from Chapter 1 of the book.','The tutor reads out a short scenario. Groups have three minutes to answer the questions and decide.','Compare decisions and reasons across groups.'],
+  g:['Reaches a decision in time','Gives a reason that can be written down and checked']},
+ {ch:1, t:'Reflection paper: an AI application through an ethics lens', f:'Individual writing', from:'Chapter 1 instructor notes',
+  s:['Choose a real or invented AI application.','Analyse it using the core principles and the AI Ethics by Design approach.','Say what should be built in from the start.'],
+  g:['Applies at least three principles accurately','Says when in the project each step should happen']},
+ {ch:2, t:'Spot the violated principle', f:'Case analysis', from:'Chapter 2 slides',
+  s:['Work through the three cases: AI in hiring, healthcare algorithms, predictive policing.','For each, identify the violated principles.','Suggest one remedy per principle.'],
+  g:['Hiring: fairness and bias','Healthcare: accountability and harm','Policing: transparency and privacy','Remedies are specific, not general promises']},
+ {ch:2, t:'Role-play: the ethics review meeting', f:'Role-play', from:'Chapter 2 instructor resources',
+  s:['Assign roles: developer, manager, a person affected by the system, a regulator, an ethics lead.','The developer presents an AI system that is about to launch.','Each role raises concerns from their point of view. The group agrees what must change before launch.'],
+  g:['Every role\'s concerns are heard','The outcome is a list of agreed changes with owners']},
+ {ch:2, t:'Ethical AI scorecard', f:'Individual or pair task', from:'Chapter 2 instructor resources',
+  s:['Pick a real or fictional AI system.','Score it from 1 to 5 on each of the five principles, with a sentence of evidence for each score.','Name the weakest principle and one fix.'],
+  g:['Each score is backed by evidence','The fix matches the weakest principle']},
+ {ch:2, t:'Audit an AI application with a checklist', f:'Practical task', from:'Chapter 2 instructor resources',
+  s:['Open the checklist builder lab.','Adapt the starter checklist for an AI application you use.','Work through it and note which items the application fails or you cannot check.'],
+  g:['Adapts the checklist rather than ticking it blindly','Notes what could not be checked, and why'], link:['../labs/checklist/index.html','Open the checklist builder']},
+ {ch:2, t:'Reflective essay or group presentation', f:'Assessment', from:'Chapter 2 instructor resources',
+  s:['Essay: analyse one core principle using a case example.','Or present as a group: design an ethical AI solution for a problem of your choice, showing how each principle is built in.'],
+  g:['Defines the principle accurately','Uses a real or realistic example','Shows the principle in practice, not only in theory']},
+ {ch:3, t:'Facial recognition under three frameworks', f:'Comparative case', from:'Chapter 3 slides and manual',
+  s:['Consider facial recognition in public surveillance.','Compare how the EU, IEEE and UNESCO frameworks would judge it.','Note where they agree and where they differ, including how firmly each can be enforced.'],
+  g:['Identifies shared values: fairness, accountability, transparency','Notes at least one difference in emphasis or enforcement']},
+ {ch:3, t:'Algorithmic hiring tools across frameworks', f:'Comparative case', from:'Chapter 3 manual',
+  s:['Explore bias and fairness in hiring tools under the OECD principles, AI4People and FAT ML.','Summarise what each would ask a hiring-tool developer to do.'],
+  g:['Gives each framework\'s focus in its own terms','Links the comparison back to bias in the data']},
+ {ch:3, t:'Build an AI ethics checklist from four frameworks', f:'Practical task', from:'Chapter 3 slides and manual',
+  s:['Use the checklist builder lab as a starting point.','Add or change items so the checklist draws on four global frameworks.','Note which framework each item comes from.'],
+  g:['Every item can be checked in practice','Items are traced to their framework'], link:['../labs/checklist/index.html','Open the checklist builder']},
+ {ch:4, t:'Exercise 1: case study analysis', f:'Case analysis', from:'Chapter 4 slides',
+  s:['Choose a real-world AI deployment, for example facial recognition in public transport.','Identify the ethical risks.','Propose a mitigation strategy using the AI Ethics by Design approach from this course.'],
+  g:['Covers bias, accountability, privacy and surveillance where relevant','Each risk has a matching fix'], link:['../labs/risk-spotter/index.html','Warm up with the station risk spotter']},
+ {ch:4, t:'Exercise 2: debate', f:'Class debate', from:'Chapter 4 slides',
+  s:['Motion: "Predictive policing powered by AI does more harm than good."','Split into two sides. Each side prepares arguments using the transparency and privacy concerns from Chapter 2 and the challenges from Chapter 4.','Debate, then hold a vote.'],
+  g:['Arguments use evidence and the course concepts, not only opinion','Each side responds to the other\'s strongest point']},
+ {ch:4, t:'Exercise 3: simulation design', f:'Practical lab', from:'Chapter 4 slides',
+  s:['Open the loan approval bias lab.','Introduce bias into the training data and record the effect on approvals and mistakes.','Apply the fairness-aware adjustment and record what it fixes and what it does not.'],
+  g:['Separates the approval gap from the accuracy gap','Explains why more representative data is still needed'], link:['../labs/loan-bias/index.html','Open the loan bias lab']},
+ {ch:4, t:'Exercise 4: ethical audit template', f:'Practical task', from:'Chapter 4 slides',
+  s:['Open the audit builder.','Create a mock ethical audit for a chatbot, including bias testing, an explainability review and a privacy assessment.','Download it and add your recommendations.'],
+  g:['All three required checks are included','Each finding leads to a next step'], link:['../labs/checklist/index.html#audit','Open the audit builder']},
+ {ch:4, t:'Exercise 5: reflective essay', f:'Individual writing, 500 words', from:'Chapter 4 slides',
+  s:['Write 500 words on: "What ethical responsibilities do AI developers have in autonomous vehicle design?"','Use at least two principles and one challenge from the course.'],
+  g:['Clear position','Uses accountability and harm accurately','Considers everyone affected']},
+ {ch:4, t:'Bias detection project and governance essay', f:'Assessment', from:'Chapter 4 instructor manual',
+  s:['Project: detect and reduce bias in a sample dataset, and report what you did.','Or essay: compare two AI governance models.','Or group presentation on an emerging ethical dilemma, such as adaptive bias or autonomous decision-making.'],
+  g:['Method and limits are explained honestly','Links back to the chapter\'s mitigation strategies']},
+];
+let f = 0;
+const fl = document.getElementById('filters'), host = document.getElementById('acts');
+const el = (t, c, ...k) => { const e = document.createElement(t); if (c) e.className = c; k.flat().forEach(x => x!=null && e.append(x.nodeType ? x : document.createTextNode(x))); return e; };
+function draw(){
+  fl.innerHTML = ''; [[0,'All chapters'],[1,'Chapter 1'],[2,'Chapter 2'],[3,'Chapter 3'],[4,'Chapter 4']].forEach(([v,t]) => { const b = el('button', null, t); b.type = 'button'; b.setAttribute('aria-pressed', String(f===v)); b.onclick = () => { f = v; draw(); }; fl.append(b); });
+  host.innerHTML = '';
+  ACTS.filter(a => !f || a.ch===f).forEach(a => {
+    const card = el('div', 'card act', el('div','meta', el('span','pill acc','Chapter '+a.ch), el('span','pill', a.f)), el('h3', null, a.t), el('ol', null, a.s.map(x => el('li', null, x))));
+    const d = el('details', null, el('summary', null, 'What good looks like'), el('ul', null, a.g.map(x => el('li', null, x)))); card.append(d);
+    if (a.link){ const l = el('a', null, a.link[1] + ' →'); l.href = a.link[0]; card.append(l); }
+    card.append(el('span', 'foot', 'From: ' + a.from)); host.append(card);
+  });
+}
+draw();
+</script>
+</body>
+</html>

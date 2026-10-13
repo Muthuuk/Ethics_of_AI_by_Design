@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loan Approval Bias Lab</title>
+<meta name="description" content="Build a simple loan approval model, introduce bias into its training data, watch the effect on approvals and mistakes, then apply a fairness-aware adjustment.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+/* Layout: header, 3D crowd of applicants beside the controls, results table, guided tasks, notes. */
+.lab{padding-block:20px 60px;display:flex;flex-direction:column;gap:16px}
+.labgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.ctl{display:flex;flex-direction:column;gap:14px}
+.ctl label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.92rem}
+.ctl label small{font-weight:400;color:var(--muted);font-size:.8rem}
+.ctl input[type=range]{width:100%;accent-color:var(--accent)}
+.val{font-family:var(--f-mono);color:var(--accent)}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.res div{background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.res small{display:block;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.res b{font-family:var(--f-mono);font-size:1.5rem}
+.res .a b{color:#0f9488} .res .b b{color:#c0267a}
+.toggle{display:flex;gap:10px;align-items:center;font-weight:600}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.msg{border-left:3px solid var(--accent);padding:6px 12px;background:var(--accent-soft);border-radius:0 8px 8px 0}
+.tasks{display:flex;flex-direction:column;gap:8px;padding-left:20px;margin:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="bar">
+  <a class="home" href="../../index.html">← Course home</a>
+  <h1><small>Lab · Chapters 1 and 4</small>Loan approval bias</h1>
+</div></div></header>
+
+<main class="wrap lab">
+  <p class="lede">This lab follows Chapter 4, Exercise 3: build a simplified loan approval system, introduce bias into its training data, show the effects, then apply a fairness-aware adjustment. Everyone and every number here is invented for learning. In this pretend world, people in Group A and Group B are <b>equally able to repay</b>. Any difference in how they are treated comes from the data.</p>
+
+  <div class="labgrid">
+    <div class="card">
+      <div class="stage s3d" id="crowd" role="img" aria-label="3D crowd of 240 loan applicants. Approved applicants rise and glow; wrong decisions are ringed in red."></div>
+      <div class="legend"><span><i style="background:#2dd4bf"></i>Group A</span><span><i style="background:#f472b6"></i>Group B</span><span>Raised and glowing = approved</span><span><i style="background:none;border:2px solid #f87171"></i>Red ring = wrong decision</span></div>
+    </div>
+    <div class="card ctl">
+      <label>Share of Group B in the training data <span class="val" id="shareV"></span>
+        <small>How many past records come from Group B. In the real population it is 50%.</small>
+        <input type="range" id="share" min="5" max="50" step="5" value="50"></label>
+      <label>Unfairness in past decisions <span class="val" id="pastV"></span>
+        <small>How much harder it was for Group B to get a loan in the old records, for the same ability to repay.</small>
+        <input type="range" id="past" min="0" max="20" step="2" value="0"></label>
+      <div class="toggle"><input type="checkbox" id="fair"><label for="fair" style="flex-direction:row">Fairness-aware adjustment</label></div>
+      <small style="color:var(--muted);margin-top:-8px">Stops the model learning the old extra hurdle for Group B, so both groups are judged against the same line.</small>
+      <div class="res">
+        <div class="a"><small>Group A approved</small><b id="apA">–</b></div>
+        <div class="b"><small>Group B approved</small><b id="apB">–</b></div>
+        <div class="a"><small>Group A wrong decisions</small><b id="erA">–</b></div>
+        <div class="b"><small>Group B wrong decisions</small><b id="erB">–</b></div>
+      </div>
+      <p class="msg" id="msg" aria-live="polite"></p>
+      <button class="btn small" type="button" id="reset">Reset to a fair start</button>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3>Your tasks</h3>
+      <ol class="tasks">
+        <li>Start fair: 50% share, no past unfairness. Note that both groups are treated alike.</li>
+        <li>Raise <b>unfairness in past decisions</b>. Watch Group B approvals fall. Nobody told the model to favour Group A: it copied the old pattern.</li>
+        <li>Now lower the <b>share of Group B</b> to 10%. Watch the red rings grow in Group B. With less data about them, the model makes more mistakes for them.</li>
+        <li>Turn on the <b>fairness-aware adjustment</b>. Which problem does it fix? Which one is still left?</li>
+        <li>Finally, raise the share back to 50%. What fixes the remaining problem?</li>
+      </ol>
+    </div>
+    <div class="card"><h3>What this shows</h3>
+      <p>Two separate problems come from the data. <b>Past unfairness</b> teaches the model to repeat an old gap in approvals. <b>Unrepresentative data</b> makes the model less accurate for the group it saw less of, as the Gender Shades study found for face-analysis tools.</p>
+      <p style="margin-top:8px">A fairness-aware adjustment can close the approval gap. But it cannot create knowledge the data never had: to fix the accuracy gap you need more representative data. That is why the course says to check who is in the data, and who is missing, before training.</p>
+      <p class="foot" style="margin-top:8px">This is a deliberately simple teaching model, not a real credit system.</p>
+    </div>
+  </div>
+</main>
+<script src="../../assets/vendor/three.min.js"></script>
+<script>
+/* ---------- invented population (fixed seed so results are repeatable) ---------- */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(42); const gauss = () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+const N = 240, PASS = 60;
+const people = []; for (let i=0;i<N;i++){ people.push({ g: i < N/2 ? 0 : 1, score: 60 + 12*gauss(), z: gauss() }); }
+// truth: an applicant can repay if their (invented) ability score is above the line. Same spread for both groups.
+/* ---------- the "model" ----------
+   It learns an approval line for each group from past records (as if it can guess the group from a stand-in such as postcode).
+   1. It copies any past unfairness as an extra hurdle for Group B, unless the fairness-aware adjustment is on.
+   2. Its judgement is less sharp for a group it saw little data about: noise shrinks with the square root of the number of records. */
+const TRAIN = 2000;
+function decide(share, past, fair){
+  const nB = Math.round(TRAIN*share/100), nA = TRAIN - nB;
+  const sd = [2 + 120/Math.sqrt(nA), 2 + 120/Math.sqrt(Math.max(1,nB))];
+  const hurdle = [0, fair ? 0 : past];
+  let ap = [0,0], er = [0,0], n = [0,0];
+  const out = people.map(p => { const yes = p.score + p.z*sd[p.g] - hurdle[p.g] > PASS; const truth = p.score > PASS; n[p.g]++; if (yes) ap[p.g]++; if (yes !== truth) er[p.g]++; return {yes, wrong: yes!==truth}; });
+  return { out, apA: ap[0]/n[0], apB: ap[1]/n[1], erA: er[0]/n[0], erB: er[1]/n[1] };
+}
+
+/* ---------- 3D crowd ---------- */
+const host = document.getElementById('crowd');
+let renderer = null; try { renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); } catch(e){}
+const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, 16/9, 0.1, 200);
+scene.add(new THREE.HemisphereLight(0xdbeafe, 0x0b1a20, 0.9)); const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(5,10,6); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(26,14), new THREE.MeshStandardMaterial({color:0x0f2a33, roughness:.9})); floor.rotation.x = -Math.PI/2; floor.position.y = -0.01; scene.add(floor);
+const divider = new THREE.Mesh(new THREE.BoxGeometry(0.08,0.05,12), new THREE.MeshStandardMaterial({color:0x334155})); scene.add(divider);
+const figs = people.map((p,i) => {
+  const k = p.g===0 ? i : i - N/2; const col = k % 12, row = Math.floor(k/12);
+  const x = (p.g===0 ? -11.4 : 0.9) + col*0.95, z = -4.5 + row*0.95;
+  const color = p.g===0 ? 0x2dd4bf : 0xf472b6;
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,0.7,18), new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:.1, roughness:.5, transparent:true, opacity:.5}));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2,18,14), m.material); head.position.y = 0.55; m.add(head);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42,0.05,8,30), new THREE.MeshStandardMaterial({color:0xf87171, emissive:0xf87171, emissiveIntensity:.9, transparent:true, opacity:0})); ring.rotation.x = Math.PI/2; ring.position.y = -0.3; m.add(ring);
+  m.position.set(x, 0.35, z); scene.add(m); return {m, ring, y:0.35, ty:0.35, e:.1, te:.1, o:.5, to:.5, r:0, tr:0};
+});
+const layer = document.createElement('div'); layer.className = 'lbl-layer'; host.append(layer);
+const la = document.createElement('div'); la.className='lbl b'; la.textContent='Group A'; la.style.left='22%'; la.style.top='10px'; la.style.transform='translateX(-50%)';
+const lb = document.createElement('div'); lb.className='lbl b'; lb.textContent='Group B'; lb.style.left='72%'; lb.style.top='10px'; lb.style.transform='translateX(-50%)';
+layer.append(la, lb);
+if (renderer){ renderer.setPixelRatio(Math.min(2, devicePixelRatio||1)); host.prepend(renderer.domElement); }
+else { const f = document.createElement('div'); f.className='s3d-fallback'; f.innerHTML='<b>3D view not available on this device.</b><span>The numbers on the right still show every result.</span>'; host.append(f); }
+function size(){ if (!renderer) return; const w = host.clientWidth, h = host.clientHeight; renderer.setSize(w,h,false); cam.aspect = w/h; cam.updateProjectionMatrix(); }
+new ResizeObserver(size).observe(host);
+let yaw = 0, drag = false, lx = 0;
+host.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; });
+addEventListener('pointerup', () => drag = false);
+host.addEventListener('pointermove', e => { if (drag){ yaw += (e.clientX-lx)*0.006; lx = e.clientX; } });
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(t){
+  requestAnimationFrame(frame); if (!renderer) return;
+  figs.forEach(f => { f.y += (f.ty-f.y)*.08; f.e += (f.te-f.e)*.08; f.o += (f.to-f.o)*.08; f.r += (f.tr-f.r)*.1; f.m.position.y = f.y; f.m.material.emissiveIntensity = f.e; f.m.material.opacity = f.o; f.ring.material.opacity = f.r; f.ring.visible = f.r > .02; });
+  const a = yaw + (reduce?0:Math.sin(t/4000)*0.12), d = 20.5;
+  cam.position.set(Math.sin(a)*d, 11, Math.cos(a)*d); cam.lookAt(0,0,0.3); renderer.render(scene, cam);
+}
+requestAnimationFrame(frame);
+
+/* ---------- controls ---------- */
+const $ = id => document.getElementById(id);
+const pct = x => Math.round(x*100) + '%';
+function run(){
+  const share = +$('share').value, past = +$('past').value, fair = $('fair').checked;
+  $('shareV').textContent = share + '%'; $('pastV').textContent = past ? `+${past} points harder for Group B` : 'none';
+  const r = decide(share, past, fair);
+  r.out.forEach((o,i) => { const f = figs[i]; f.ty = o.yes ? 1.05 : 0.35; f.te = o.yes ? .85 : .05; f.to = o.yes ? 1 : .35; f.tr = o.wrong ? 1 : 0; });
+  $('apA').textContent = pct(r.apA); $('apB').textContent = pct(r.apB); $('erA').textContent = pct(r.erA); $('erB').textContent = pct(r.erB);
+  const gap = r.apA - r.apB, egap = r.erB - r.erA; let m;
+  if (Math.abs(gap) < .06 && egap < .05) m = 'Both groups are treated alike. This is the fair starting point.';
+  else if (gap >= .06 && !fair) m = `The model has copied the old unfairness: Group B is approved ${Math.round(gap*100)} points less often, although both groups are equally able to repay.` + (egap >= .05 ? ' It also makes more mistakes for Group B, because it saw less data about them.' : '');
+  else if (fair && egap >= .05) m = 'The fairness-aware adjustment has closed the approval gap. But Group B still gets more wrong decisions, because the model saw too little data about them. Only more representative data fixes that.';
+  else if (egap >= .05) m = 'With little data about Group B, the model makes more mistakes for them: some who could repay are refused, and some who could not are approved.';
+  else m = 'The approval gap is closed and mistakes are balanced.';
+  $('msg').textContent = m;
+}
+['share','past','fair'].forEach(id => $(id).addEventListener('input', run));
+$('reset').onclick = () => { $('share').value = 50; $('past').value = 0; $('fair').checked = false; run(); };
+run();
+</script>
+</body>
+</html>

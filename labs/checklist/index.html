@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist and Audit Builder</title>
+<meta name="description" content="Build your own AI ethics checklist, or a mock ethical audit for a chatbot with bias testing, an explainability review and a privacy assessment, and download it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/course.css">
+<style>
+/* Layout: two tabs (checklist, audit). Each: system name, grouped items, add-your-own, download/print. */
+.lab{padding-block:20px 60px;display:flex;flex-direction:column;gap:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 16px;cursor:pointer;font-weight:600}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.grp{display:flex;flex-direction:column;gap:6px}
+.grp h3{font-size:1.1rem}
+.grp .src{font-size:.78rem;color:var(--muted)}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg)}
+.item input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.item input[type=text]{width:100%;border:0;background:transparent;padding:4px 0;font-size:.95rem}
+.item button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.aud{display:flex;flex-direction:column;gap:10px}
+.arow{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.arow b{font-size:.95rem}
+.arow .how{font-size:.86rem;color:var(--muted)}
+.arow select,.arow textarea,#sysName,#audName{padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface);font:inherit;color:inherit}
+.arow textarea{min-height:52px;resize:vertical}
+.arow .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#sysName,#audName{width:340px;max-width:100%}
+@media print{ .top,.tabs,.noprint{display:none!important} .card{border:0} body{background:#fff} }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="bar">
+  <a class="home" href="../../index.html">← Course home</a>
+  <h1><small>Lab · Chapters 2 to 4</small>Checklist and audit builder</h1>
+</div></div></header>
+
+<main class="wrap lab">
+  <p class="lede">Two activities from the course. <b>Ethics checklist</b> follows Chapter 3: build an AI ethics checklist that draws on the shared values of the major frameworks. <b>Chatbot audit</b> follows Chapter 4, Exercise 4: create a mock ethical audit for a chatbot, including bias testing, an explainability review and a privacy assessment. Your draft is kept in this browser only.</p>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tabC" aria-selected="true">Ethics checklist</button>
+    <button type="button" role="tab" id="tabA" aria-selected="false">Chatbot audit</button>
+  </div>
+
+  <section id="paneC" class="card" style="display:flex;flex-direction:column;gap:16px">
+    <label class="noprint" style="display:flex;flex-direction:column;gap:4px;font-weight:600">AI system this checklist is for
+      <input id="sysName" type="text" placeholder="For example: CV screening tool"></label>
+    <div id="groups" style="display:flex;flex-direction:column;gap:18px"></div>
+    <div class="row noprint">
+      <button class="btn primary" type="button" id="dlC">Download as Word</button>
+      <button class="btn" type="button" id="txtC">Download as text</button>
+      <button class="btn" type="button" onclick="print()">Print or save as PDF</button>
+      <button class="btn small" type="button" id="resetC">Start again</button>
+    </div>
+    <p class="foot">Starter items come from the course: the five principles (Chapters 1 and 2), the action steps (Chapter 2), the shared values of the EU, OECD, IEEE and UNESCO frameworks (Chapter 3) and the challenges and fixes (Chapter 4). Untick, edit or add your own: the chapters ask you to critique and adapt tools, not just tick them.</p>
+  </section>
+
+  <section id="paneA" class="card" hidden style="display:flex;flex-direction:column;gap:16px">
+    <label class="noprint" style="display:flex;flex-direction:column;gap:4px;font-weight:600">Chatbot being audited
+      <input id="audName" type="text" placeholder="For example: council advice chatbot"></label>
+    <div id="audit" class="aud"></div>
+    <div class="row noprint">
+      <button class="btn primary" type="button" id="dlA">Download as Word</button>
+      <button class="btn" type="button" id="txtA">Download as text</button>
+      <button class="btn" type="button" onclick="print()">Print or save as PDF</button>
+      <button class="btn small" type="button" id="resetA">Start again</button>
+    </div>
+    <p class="foot">This is a mock audit for learning. Fill in the finding for each check as if you had run it, and write what you would do next.</p>
+  </section>
+</main>
+<script>
+const GROUPS = [
+ ['Transparency and explainability', 'Chapters 1–3', ['Can we explain the main reasons for each decision in plain language?', 'Do people know they are dealing with an AI system?', 'Is it written down how the system works, and what it should not be used for?']],
+ ['Fairness and non-discrimination', 'Chapters 1, 2 and 4', ['Is the training data representative of everyone the system will be used on?', 'Have results been tested separately for each group of people?', 'Have we checked that the system is not copying unfairness from past records?']],
+ ['Accountability and oversight', 'Chapters 2–4', ['Is a named person or team responsible for the system\'s outcomes?', 'Can people question a decision and have it reviewed by a person?', 'Are decisions and risk assessments documented?']],
+ ['Privacy and data protection', 'Chapters 2 and 4', ['Do we collect only the personal data we need?', 'Are people told how their data is used, and asked for consent where needed?', 'Is there a rule for how long data is kept, and how it is protected?']],
+ ['Do good, do no harm', 'Chapters 1 and 2', ['Have we asked who could be harmed, and how badly?', 'Are high-stakes decisions checked by a person before they take effect?', 'Can the system be paused or switched off quickly?']],
+ ['Lifecycle and governance', 'Chapters 2–4', ['Is there an ethics review at each stage, from data collection to deployment?', 'Is the system monitored continuously after launch, including after updates?', 'Are people from different disciplines, and people affected, involved in decisions?']],
+];
+const AUDIT = [
+ ['Bias testing', [['Do answers differ in quality or tone for different groups of users?', 'Ask the same questions written in different styles, for example with different names, dialects or levels of English, and compare the answers.'],
+                   ['Was the chatbot built and tested with a representative range of users?', 'Ask the supplier or team who was in the training and test data, and who was missing.']]],
+ ['Explainability review', [['Can a user find out why the chatbot gave a particular answer or recommendation?', 'Pick five answers and try to trace where each came from. Can a member of staff explain it?'],
+                            ['Does the chatbot make clear that it is an AI and what it cannot do?', 'Check the opening message and help pages.']]],
+ ['Privacy assessment', [['What personal data does the chatbot collect, and is all of it needed?', 'List every field and conversation log that is stored. Mark each as needed or not needed.'],
+                         ['Are users told how their data is used, how long it is kept, and how to have it deleted?', 'Read the notice users see. Is it clear and easy to find?']]],
+ ['Accountability and oversight', [['Who is responsible when the chatbot gives wrong or harmful advice?', 'Find the named owner and the route for complaints.'],
+                                  ['Is the chatbot monitored after launch and after each update?', 'Ask how often results are reviewed, and who can pause the chatbot.']]],
+];
+const KEY = 'eai:lab-checklist'; let D;
+try { D = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){ D = null; }
+function fresh(){ return { sys:'', aud:'', items: GROUPS.map(g => g[2].map(t => ({t, on:true}))), audit: AUDIT.map(s => s[1].map(() => ({f:'Not tested', n:''}))) }; }
+if (!D || !D.items || D.items.length !== GROUPS.length) D = fresh();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch(e){} };
+const $ = id => document.getElementById(id);
+const el = (t, a, ...k) => { const e = document.createElement(t); if (a) Object.entries(a).forEach(([x,y]) => { if (x==='class') e.className = y; else if (x.startsWith('on')) e.addEventListener(x.slice(2), y); else e.setAttribute(x, y); }); k.flat().forEach(c => c!=null && e.append(c.nodeType ? c : document.createTextNode(c))); return e; };
+
+function drawC(){
+  $('sysName').value = D.sys; const host = $('groups'); host.innerHTML = '';
+  GROUPS.forEach((g, gi) => {
+    const box = el('div', {class:'grp'}, el('h3', null, g[0]), el('span', {class:'src'}, 'From ' + g[1]));
+    D.items[gi].forEach((it, ii) => {
+      const cb = el('input', {type:'checkbox', 'aria-label':'Include this item'}); cb.checked = it.on; cb.onchange = () => { it.on = cb.checked; save(); };
+      const tx = el('input', {type:'text', 'aria-label':'Checklist item'}); tx.value = it.t; tx.oninput = () => { it.t = tx.value; save(); };
+      const del = el('button', {type:'button', 'aria-label':'Remove item', title:'Remove', class:'noprint'}, '×'); del.onclick = () => { D.items[gi].splice(ii, 1); save(); drawC(); };
+      box.append(el('div', {class:'item'}, cb, tx, del));
+    });
+    const add = el('button', {type:'button', class:'btn small noprint', style:'align-self:flex-start'}, '+ Add your own item'); add.onclick = () => { D.items[gi].push({t:'', on:true}); save(); drawC(); };
+    box.append(add); host.append(box);
+  });
+}
+function drawA(){
+  $('audName').value = D.aud; const host = $('audit'); host.innerHTML = '';
+  AUDIT.forEach((s, si) => {
+    host.append(el('h3', null, s[0]));
+    s[1].forEach(([q, how], qi) => { const st = D.audit[si][qi];
+      const sel = el('select', {'aria-label':'Finding'}, ['Not tested','No concerns','Some concerns','Serious concerns'].map(o => el('option', null, o))); sel.value = st.f; sel.onchange = () => { st.f = sel.value; save(); };
+      const ta = el('textarea', {placeholder:'What did you find? What would you do next?', 'aria-label':'Notes'}); ta.value = st.n; ta.oninput = () => { st.n = ta.value; save(); };
+      host.append(el('div', {class:'arow'}, el('b', null, q), el('span', {class:'how'}, 'How to check: ' + how), el('div', {class:'r'}, el('span', null, 'Finding'), sel), ta));
+    });
+  });
+}
+$('sysName').oninput = e => { D.sys = e.target.value; save(); };
+$('audName').oninput = e => { D.aud = e.target.value; save(); };
+function tab(which){ const c = which==='c'; $('tabC').setAttribute('aria-selected', String(c)); $('tabA').setAttribute('aria-selected', String(!c)); $('paneC').hidden = !c; $('paneA').hidden = c; try { history.replaceState(null, '', c ? '#checklist' : '#audit'); } catch(e){} }
+$('tabC').onclick = () => tab('c'); $('tabA').onclick = () => tab('a');
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function checklistParts(){ return GROUPS.map((g, gi) => [g[0], D.items[gi].filter(i => i.on && i.t.trim()).map(i => i.t.trim())]).filter(x => x[1].length); }
+function download(name, type, body){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body], {type})); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); }
+const today = () => new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+function wordDoc(title, inner){ return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}h1{color:#0E6B66;font-size:18pt}h2{color:#14232A;font-size:13pt;margin-top:14pt}td,th{border:1px solid #999;padding:4pt;vertical-align:top}table{border-collapse:collapse;width:100%}</style></head><body>${inner}</body></html>`; }
+$('dlC').onclick = () => { const t = 'AI ethics checklist' + (D.sys ? ': ' + D.sys : '');
+  download('ai-ethics-checklist.doc', 'application/msword', wordDoc(t, `<h1>${esc(t)}</h1><p>Prepared ${today()} · Engineering Ethics of AI by Design course</p>` + checklistParts().map(([g, items]) => `<h2>${esc(g)}</h2><table>${items.map(i => `<tr><td style="width:24pt">☐</td><td>${esc(i)}</td><td style="width:160pt">Notes:</td></tr>`).join('')}</table>`).join(''))); };
+$('txtC').onclick = () => { const t = 'AI ethics checklist' + (D.sys ? ': ' + D.sys : '');
+  download('ai-ethics-checklist.txt', 'text/plain', t + '\nPrepared ' + today() + '\n\n' + checklistParts().map(([g, items]) => g.toUpperCase() + '\n' + items.map(i => '[ ] ' + i).join('\n')).join('\n\n') + '\n'); };
+function auditRows(){ return AUDIT.map((s, si) => [s[0], s[1].map(([q, how], qi) => ({q, how, f: D.audit[si][qi].f, n: D.audit[si][qi].n}))]); }
+$('dlA').onclick = () => { const t = 'Ethical audit' + (D.aud ? ': ' + D.aud : ': chatbot');
+  download('chatbot-ethical-audit.doc', 'application/msword', wordDoc(t, `<h1>${esc(t)}</h1><p>Mock audit prepared ${today()} · Engineering Ethics of AI by Design course</p>` + auditRows().map(([s, rows]) => `<h2>${esc(s)}</h2><table><tr><th>Check</th><th>How</th><th>Finding</th><th>Notes and next steps</th></tr>${rows.map(r => `<tr><td>${esc(r.q)}</td><td>${esc(r.how)}</td><td>${esc(r.f)}</td><td>${esc(r.n)}</td></tr>`).join('')}</table>`).join(''))); };
+$('txtA').onclick = () => { const t = 'Ethical audit' + (D.aud ? ': ' + D.aud : ': chatbot');
+  download('chatbot-ethical-audit.txt', 'text/plain', t + '\nPrepared ' + today() + '\n\n' + auditRows().map(([s, rows]) => s.toUpperCase() + '\n' + rows.map(r => `- ${r.q}\n  How: ${r.how}\n  Finding: ${r.f}\n  Notes: ${r.n || '(none)'}`).join('\n')).join('\n\n') + '\n'); };
+$('resetC').onclick = () => { if (confirm('Clear your checklist and start again?')){ const f = fresh(); D.sys = ''; D.items = f.items; save(); drawC(); } };
+$('resetA').onclick = () => { if (confirm('Clear your audit and start again?')){ const f = fresh(); D.aud = ''; D.audit = f.audit; save(); drawA(); } };
+drawC(); drawA(); tab(location.hash === '#audit' ? 'a' : 'c');
+</script>
+</body>
+</html>
